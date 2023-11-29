@@ -2,13 +2,18 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
@@ -25,6 +30,13 @@ public class TextEditor extends JFrame implements ActionListener{
 	JLabel fontLabel;
 	JSpinner fontSizeSpinner;
 	JButton textColorButton;
+	JComboBox fontBox;
+	
+	JMenuBar menuBar;
+	JMenu fileMenu;
+	JMenuItem openItem;
+	JMenuItem saveItem;
+	JMenuItem exitItem;
 	
 	TextEditor() {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -60,10 +72,36 @@ public class TextEditor extends JFrame implements ActionListener{
 		textColorButton = new JButton("Color");
 		textColorButton.addActionListener(this);
 		
+		String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+		fontBox = new JComboBox(fonts);
+		fontBox.addActionListener(this);
+		fontBox.setSelectedItem("Arial");
 		
+		// menubar
+		
+		menuBar = new JMenuBar();
+		fileMenu = new JMenu("File");
+		openItem = new JMenuItem("Open");
+		saveItem = new JMenuItem("Save");
+		exitItem = new JMenuItem("Exit");
+		
+		openItem.addActionListener(this);
+		saveItem.addActionListener(this);
+		exitItem.addActionListener(this);
+		
+		fileMenu.add(openItem);
+		fileMenu.add(saveItem);
+		fileMenu.add(exitItem);
+		menuBar.add(fileMenu);
+		
+		
+		// end menubar
+		
+		this.setJMenuBar(menuBar);
 		this.add(fontLabel);
 		this.add(fontSizeSpinner);
 		this.add(textColorButton);
+		this.add(fontBox);
 		this.add(scrollPane);
 		this.setVisible(true);
 	}
@@ -75,8 +113,22 @@ public class TextEditor extends JFrame implements ActionListener{
 			textArea.setForeground(color);
 		}
 		
+		if (e.getSource() == fontBox) {
+			textArea.setFont(new Font((String) fontBox.getSelectedItem(), Font.PLAIN, textArea.getFont().getSize()));
+		}
 		
+		if (e.getSource() == openItem) {
+			
+		}
 		
+		if (e.getSource() == saveItem) {
+			
+		}
+		
+		if (e.getSource() == exitItem) {
+			// maybe add "Save before exiting" pop-up window
+			System.exit(0);
+		}
 	}
 
 }
