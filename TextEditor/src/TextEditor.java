@@ -5,15 +5,20 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
@@ -122,12 +127,43 @@ public class TextEditor extends JFrame implements ActionListener{
 		}
 		
 		if (e.getSource() == saveItem) {
-			
+			save();
 		}
 		
 		if (e.getSource() == exitItem) {
 			// maybe add "Save before exiting" pop-up window
+			int option = JOptionPane.showConfirmDialog(this,"Save before exiting?");  
+			if (option == JOptionPane.CANCEL_OPTION) {
+				return;
+			}
+			else if (option == JOptionPane.YES_OPTION) {
+				save();
+			}
 			System.exit(0);
+		}
+	}
+	
+	public void save() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home") + File.separator + "Downloads"));
+		
+		int response = fileChooser.showSaveDialog(null);
+		
+		if (response == JFileChooser.APPROVE_OPTION) {
+			File file;
+			PrintWriter fileOut = null;
+			
+			file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+			try {
+				fileOut = new PrintWriter(file);
+				fileOut.println(textArea.getText());
+			} 
+			catch (FileNotFoundException e1){
+				e1.printStackTrace();
+			}
+			finally {
+				fileOut.close();
+			}
 		}
 	}
 
