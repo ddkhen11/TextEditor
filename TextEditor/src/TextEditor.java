@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -25,6 +26,7 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class TextEditor extends JFrame implements ActionListener{
 
@@ -123,7 +125,35 @@ public class TextEditor extends JFrame implements ActionListener{
 		}
 		
 		if (e.getSource() == openItem) {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setCurrentDirectory(new File(System.getProperty("user.home") + File.separator + "Downloads"));
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("Text files", "txt");
+			fileChooser.setFileFilter(filter);
 			
+			int response = fileChooser.showOpenDialog(null);
+			
+			if (response == JFileChooser.APPROVE_OPTION) {
+				File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+				Scanner fileIn = null;
+				
+				try {
+					fileIn = new Scanner(file);
+					if (file.isFile()) {
+						while (fileIn.hasNextLine()) {
+							String line = fileIn.nextLine() + "\n";
+							textArea.append(line);
+						}
+					}
+				} 
+				catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
+				finally {
+					if (fileIn != null) {
+						fileIn.close();
+					}
+				}
+			}
 		}
 		
 		if (e.getSource() == saveItem) {
@@ -131,7 +161,6 @@ public class TextEditor extends JFrame implements ActionListener{
 		}
 		
 		if (e.getSource() == exitItem) {
-			// maybe add "Save before exiting" pop-up window
 			int option = JOptionPane.showConfirmDialog(this,"Save before exiting?");  
 			if (option == JOptionPane.CANCEL_OPTION) {
 				return;
@@ -150,10 +179,9 @@ public class TextEditor extends JFrame implements ActionListener{
 		int response = fileChooser.showSaveDialog(null);
 		
 		if (response == JFileChooser.APPROVE_OPTION) {
-			File file;
+			File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
 			PrintWriter fileOut = null;
 			
-			file = new File(fileChooser.getSelectedFile().getAbsolutePath());
 			try {
 				fileOut = new PrintWriter(file);
 				fileOut.println(textArea.getText());
