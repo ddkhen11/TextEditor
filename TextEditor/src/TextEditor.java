@@ -26,7 +26,10 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.undo.UndoManager;
 
 public class TextEditor extends JFrame implements ActionListener{
 
@@ -38,12 +41,16 @@ public class TextEditor extends JFrame implements ActionListener{
 	JSpinner fontSizeSpinner;
 	JButton textColorButton;
 	JComboBox fontBox;
+	UndoManager undoManager;
 	
 	JMenuBar menuBar;
 	JMenu fileMenu;
 	JMenuItem openItem;
 	JMenuItem saveItem;
 	JMenuItem exitItem;
+	JMenu editMenu;
+	JMenuItem undo;
+	JMenuItem redo;
 	
 	TextEditor() {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -84,9 +91,21 @@ public class TextEditor extends JFrame implements ActionListener{
 		fontBox.addActionListener(this);
 		fontBox.setSelectedItem("Arial");
 		
+		undoManager = new UndoManager();
+		textArea.getDocument().addUndoableEditListener(new UndoableEditListener() {
+
+			@Override
+			public void undoableEditHappened(UndoableEditEvent e) {
+				undoManager.addEdit(e.getEdit());
+				undo.setEnabled(undoManager.canUndo());
+				redo.setEnabled(undoManager.canRedo());
+			}
+		});
+		
 		// menubar
 		
 		menuBar = new JMenuBar();
+		
 		fileMenu = new JMenu("File");
 		openItem = new JMenuItem("Open");
 		saveItem = new JMenuItem("Save");
@@ -101,6 +120,19 @@ public class TextEditor extends JFrame implements ActionListener{
 		fileMenu.add(exitItem);
 		menuBar.add(fileMenu);
 		
+		editMenu = new JMenu("Edit");
+		undo = new JMenuItem("Undo");
+		redo = new JMenuItem("Redo");
+		
+		undo.addActionListener(this);
+		redo.addActionListener(this);
+		
+		editMenu.add(undo);
+		editMenu.add(redo);
+		menuBar.add(editMenu);
+		
+		undo.setEnabled(false);
+	    redo.setEnabled(false);
 		
 		// end menubar
 		
@@ -117,7 +149,10 @@ public class TextEditor extends JFrame implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == textColorButton) {
 			Color color = JColorChooser.showDialog(null, "Choose a color", Color.black);
-			textArea.setForeground(color);
+			if (color != null) {
+	            textArea.setForeground(color);
+	            textColorButton.setForeground(color);
+	        }
 		}
 		
 		if (e.getSource() == fontBox) {
@@ -169,6 +204,23 @@ public class TextEditor extends JFrame implements ActionListener{
 				save();
 			}
 			System.exit(0);
+		}
+		
+		if (e.getSource() == undo) {
+			if (undoManager.canUndo()) {
+				undoManager.undo();
+			}
+		}
+		
+		if (e.getSource() == redo) {
+			if (undoManager.canRedo()) {
+				undoManager.redo();
+			}
+		}
+		
+		if (undoManager != null) {
+			undo.setEnabled(undoManager.canUndo());
+			redo.setEnabled(undoManager.canRedo());
 		}
 	}
 	
