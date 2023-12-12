@@ -5,6 +5,8 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -26,6 +28,8 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -51,6 +55,10 @@ public class TextEditor extends JFrame implements ActionListener{
 	JMenu editMenu;
 	JMenuItem undo;
 	JMenuItem redo;
+	JMenuItem findAndReplace;
+	JMenu formatMenu;
+	JMenuItem boldItem;
+	JMenuItem italicsItem;
 	
 	TextEditor() {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -77,8 +85,8 @@ public class TextEditor extends JFrame implements ActionListener{
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				textArea.setFont(new Font(textArea.getFont().getFamily(), Font.PLAIN, (int) fontSizeSpinner.getValue()));
-				
+				Font newFont = new Font(textArea.getFont().getFamily(), textArea.getFont().getStyle(), (int) fontSizeSpinner.getValue());
+				textArea.setFont(newFont);
 			}
 			
 		});
@@ -104,6 +112,8 @@ public class TextEditor extends JFrame implements ActionListener{
 		
 		// menubar
 		
+		// File bar
+		
 		menuBar = new JMenuBar();
 		
 		fileMenu = new JMenu("File");
@@ -120,19 +130,38 @@ public class TextEditor extends JFrame implements ActionListener{
 		fileMenu.add(exitItem);
 		menuBar.add(fileMenu);
 		
+		// Edit bar
+		
 		editMenu = new JMenu("Edit");
 		undo = new JMenuItem("Undo");
 		redo = new JMenuItem("Redo");
+		findAndReplace = new JMenuItem("Find and Replace");
 		
 		undo.addActionListener(this);
 		redo.addActionListener(this);
+		findAndReplace.addActionListener(this);
 		
 		editMenu.add(undo);
 		editMenu.add(redo);
+		editMenu.add(findAndReplace);
 		menuBar.add(editMenu);
 		
 		undo.setEnabled(false);
 	    redo.setEnabled(false);
+	    
+	    // Format bar
+	    
+	    formatMenu = new JMenu("Format");
+	    boldItem = new JMenuItem("Bold");
+		italicsItem = new JMenuItem("Italic");
+		
+		boldItem.addActionListener(this);
+		italicsItem.addActionListener(this);
+		
+		
+		formatMenu.add(boldItem);
+		formatMenu.add(italicsItem);;
+		menuBar.add(formatMenu);
 		
 		// end menubar
 		
@@ -148,6 +177,9 @@ public class TextEditor extends JFrame implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == textColorButton) {
+			// TODO make this action undoable/redoable
+			
+			
 			Color color = JColorChooser.showDialog(null, "Choose a color", Color.black);
 			if (color != null) {
 	            textArea.setForeground(color);
@@ -156,7 +188,9 @@ public class TextEditor extends JFrame implements ActionListener{
 		}
 		
 		if (e.getSource() == fontBox) {
-			textArea.setFont(new Font((String) fontBox.getSelectedItem(), Font.PLAIN, textArea.getFont().getSize()));
+			// TODO make this action undoable/redoable
+			
+			textArea.setFont(new Font((String) fontBox.getSelectedItem(), textArea.getFont().getStyle(), textArea.getFont().getSize()));
 		}
 		
 		if (e.getSource() == openItem) {
@@ -216,6 +250,48 @@ public class TextEditor extends JFrame implements ActionListener{
 			if (undoManager.canRedo()) {
 				undoManager.redo();
 			}
+		}
+		
+		if (e.getSource() == findAndReplace) {
+			FindReplaceDialog findReplaceDialog = new FindReplaceDialog(this, textArea);
+			findReplaceDialog.setVisible(true);
+			
+		}
+		
+		if (e.getSource() == boldItem) {
+			Font currentFont = textArea.getFont();
+		    int currentStyle = currentFont.getStyle();
+		    boolean isBold = (currentStyle & Font.BOLD) == Font.BOLD;
+
+		    if (isBold) {
+		        currentStyle &= ~Font.BOLD;
+		    } 
+		    else {
+		        currentStyle |= Font.BOLD;
+		    }
+
+		    Font newFont = new Font(currentFont.getFamily(), currentStyle, currentFont.getSize());
+
+		    undoManager.addEdit(new FontStyleEdit(textArea, currentFont, newFont));
+		    textArea.setFont(newFont);	
+		}
+		
+		if (e.getSource() == italicsItem) {
+		    Font currentFont = textArea.getFont();
+		    int currentStyle = currentFont.getStyle();
+		    boolean isItalic = (currentStyle & Font.ITALIC) == Font.ITALIC;
+
+		    if (isItalic) {
+		        currentStyle &= ~Font.ITALIC;
+		    } 
+		    else {
+		        currentStyle |= Font.ITALIC;
+		    }
+
+		    Font newFont = new Font(currentFont.getFamily(), currentStyle, currentFont.getSize());
+
+		    undoManager.addEdit(new FontStyleEdit(textArea, currentFont, newFont));
+		    textArea.setFont(newFont);  
 		}
 		
 		if (undoManager != null) {
