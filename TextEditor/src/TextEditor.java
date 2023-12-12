@@ -80,13 +80,21 @@ public class TextEditor extends JFrame implements ActionListener{
 		
 		fontSizeSpinner = new JSpinner();
 		fontSizeSpinner.setPreferredSize(new Dimension(50, 25));
-		fontSizeSpinner.setValue(20);
+		fontSizeSpinner.setValue(14);
 		fontSizeSpinner.addChangeListener(new ChangeListener(){
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
+				Font oldFont = textArea.getFont();
 				Font newFont = new Font(textArea.getFont().getFamily(), textArea.getFont().getStyle(), (int) fontSizeSpinner.getValue());
+			
+				undoManager.addEdit(new FontStyleEdit(TextEditor.this, oldFont, newFont));;
 				textArea.setFont(newFont);
+				
+				if (undoManager != null) {
+					undo.setEnabled(undoManager.canUndo());
+					redo.setEnabled(undoManager.canRedo());
+				}
 			}
 			
 		});
@@ -177,20 +185,24 @@ public class TextEditor extends JFrame implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == textColorButton) {
-			// TODO make this action undoable/redoable
+			Color oldColor = textArea.getForeground();
+			Color newColor = JColorChooser.showDialog(null, "Choose a color", Color.black);
 			
-			
-			Color color = JColorChooser.showDialog(null, "Choose a color", Color.black);
-			if (color != null) {
-	            textArea.setForeground(color);
-	            textColorButton.setForeground(color);
+			if (newColor != null && !oldColor.equals(newColor)) {
+				undoManager.addEdit(new TextColorEdit(textArea, textColorButton, oldColor, newColor));
+	            textArea.setForeground(newColor);
+	            textColorButton.setForeground(newColor);
 	        }
 		}
 		
 		if (e.getSource() == fontBox) {
-			// TODO make this action undoable/redoable
-			
-			textArea.setFont(new Font((String) fontBox.getSelectedItem(), textArea.getFont().getStyle(), textArea.getFont().getSize()));
+			Font oldFont = textArea.getFont();
+		    Font newFont = new Font((String) fontBox.getSelectedItem(), oldFont.getStyle(), oldFont.getSize());
+		    
+		    if (!oldFont.equals(newFont)) {
+		    	undoManager.addEdit(new FontStyleEdit(this, oldFont, newFont));
+		    	textArea.setFont(newFont);
+		    }
 		}
 		
 		if (e.getSource() == openItem) {
@@ -272,7 +284,7 @@ public class TextEditor extends JFrame implements ActionListener{
 
 		    Font newFont = new Font(currentFont.getFamily(), currentStyle, currentFont.getSize());
 
-		    undoManager.addEdit(new FontStyleEdit(textArea, currentFont, newFont));
+		    undoManager.addEdit(new FontStyleEdit(this, currentFont, newFont));
 		    textArea.setFont(newFont);	
 		}
 		
@@ -290,7 +302,7 @@ public class TextEditor extends JFrame implements ActionListener{
 
 		    Font newFont = new Font(currentFont.getFamily(), currentStyle, currentFont.getSize());
 
-		    undoManager.addEdit(new FontStyleEdit(textArea, currentFont, newFont));
+		    undoManager.addEdit(new FontStyleEdit(this, currentFont, newFont));
 		    textArea.setFont(newFont);  
 		}
 		
