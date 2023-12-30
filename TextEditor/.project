@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>resources/english.0</name>
+			<type>1</type>
+			<location>/Users/danielkhen/Downloads/jazzy-0.5.2.src/dict/english.0</location>
+		</link>
+	</linkedResources>
 </projectDescription>

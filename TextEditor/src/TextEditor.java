@@ -35,6 +35,7 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoManager;
 
+
 public class TextEditor extends JFrame implements ActionListener{
 
 	private static final long serialVersionUID = 1L;
@@ -59,6 +60,7 @@ public class TextEditor extends JFrame implements ActionListener{
 	JMenu formatMenu;
 	JMenuItem boldItem;
 	JMenuItem italicsItem;
+	
 	
 	TextEditor() {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -180,6 +182,7 @@ public class TextEditor extends JFrame implements ActionListener{
 		this.add(fontBox);
 		this.add(scrollPane);
 		this.setVisible(true);
+
 	}
 
 	@Override
