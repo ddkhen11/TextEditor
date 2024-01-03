@@ -16,7 +16,7 @@ This is a simple text editor written in Java with various functionalities. It al
 
 2. Compile the Java source code files using your preferred Java IDE or command-line tools.
 
-3. Run the `TextEditor` class to launch the text editor application.
+3. Run the `Main` class to launch the text editor application.
 
 4. You can start using the text editor to create and edit text documents.
 
