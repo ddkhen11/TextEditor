@@ -10,6 +10,9 @@ import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.*;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.JButton;
@@ -35,6 +38,12 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoManager;
 
+import com.swabunga.spell.engine.SpellDictionaryHashMap;
+import com.swabunga.spell.event.SpellChecker;
+import com.swabunga.spell.event.StringWordTokenizer;
+import com.swabunga.spell.event.SpellCheckEvent;
+import com.swabunga.spell.event.SpellCheckListener;
+
 
 public class TextEditor extends JFrame implements ActionListener{
 
@@ -57,9 +66,12 @@ public class TextEditor extends JFrame implements ActionListener{
 	JMenuItem undo;
 	JMenuItem redo;
 	JMenuItem findAndReplace;
+	JMenuItem spellCheckButton;
 	JMenu formatMenu;
 	JMenuItem boldItem;
 	JMenuItem italicsItem;
+	
+	private SpellChecker spellChecker;
 	
 	
 	TextEditor() {
@@ -146,14 +158,17 @@ public class TextEditor extends JFrame implements ActionListener{
 		undo = new JMenuItem("Undo");
 		redo = new JMenuItem("Redo");
 		findAndReplace = new JMenuItem("Find and Replace");
+		spellCheckButton = new JMenuItem("Check spelling");
 		
 		undo.addActionListener(this);
 		redo.addActionListener(this);
 		findAndReplace.addActionListener(this);
+		spellCheckButton.addActionListener(this);
 		
 		editMenu.add(undo);
 		editMenu.add(redo);
 		editMenu.add(findAndReplace);
+		editMenu.add(spellCheckButton);
 		menuBar.add(editMenu);
 		
 		undo.setEnabled(false);
@@ -182,6 +197,34 @@ public class TextEditor extends JFrame implements ActionListener{
 		this.add(fontBox);
 		this.add(scrollPane);
 		this.setVisible(true);
+		
+		// spell checker
+		
+		try {
+			// Initialize spell checker
+		    InputStream dictStream = getClass().getClassLoader().getResourceAsStream("english.0");
+		    if (dictStream == null) {
+		        throw new Exception("Dictionary file not found");
+		    }
+		    Reader reader = new InputStreamReader(dictStream);
+		    SpellDictionaryHashMap dictionary = new SpellDictionaryHashMap(reader);
+		    spellChecker = new SpellChecker(dictionary);
+		    
+		    spellChecker.addSpellCheckListener(new SpellCheckListener() {
+	            public void spellingError(SpellCheckEvent event) {
+	            	// TODO print out misspelled words somewhere else in the text window
+	                List suggestions = event.getSuggestions();
+	                if (!suggestions.isEmpty()) {
+	                    System.out.println("Misspelled word: " + event.getInvalidWord());
+	                    for (Object suggestion : suggestions) {
+	                        System.out.println("\tSuggestion: " + suggestion);
+	                    }
+	                }
+	            }
+	        });
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
 
 	}
 
@@ -273,6 +316,10 @@ public class TextEditor extends JFrame implements ActionListener{
 			
 		}
 		
+		if (e.getSource() == spellCheckButton) {
+			checkSpelling();
+		}
+		
 		if (e.getSource() == boldItem) {
 			Font currentFont = textArea.getFont();
 		    int currentStyle = currentFont.getStyle();
@@ -337,5 +384,12 @@ public class TextEditor extends JFrame implements ActionListener{
 			}
 		}
 	}
+	
+	public void checkSpelling() {
+	    if (spellChecker != null) {
+	        spellChecker.checkSpelling(new StringWordTokenizer(textArea.getText()));
+	    }
+	}
+
 
 }
